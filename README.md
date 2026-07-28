@@ -89,17 +89,11 @@ Approach:
   present in this SDK install (`modules/lib/cmsis-dsp`, `modules/lib/cmsis-nn`) and are the
   intended DSP path.
 - **Training** — offline, from the serial CSV. No labelling happens on the board.
-- **Runtime** — **Edge Impulse standalone C++ export**, compiled into the application.
-  Two constraints drove that choice, both verified against this install: TensorFlow Lite Micro is
-  absent (not even declared in `zephyr/west.yml`), and the SDK's own Edge Impulse integration
-  (`nrf/lib/edge_impulse`) is marked `[DEPRECATED]` and `select DEPRECATED` in its Kconfig.
-- **Budget** — 188 KB RAM total on this SoC. That, not accuracy, is the binding constraint on
-  window length and model size.
 
-Inference changes nothing about what the board records: the raw stream stays the ground truth, so
-a model can always be retrained against data already captured.
 
-No ML code is in this repository yet — `p1_imu_bringup` only collects the data it will need.
+
+
+
 
 ## Deliberately out of scope, for now
 
@@ -111,9 +105,7 @@ These are excluded on purpose, not pending oversight:
   enabled. Data leaves the board over serial only.
 - **No TF-M and no cryptography.** The build targets `cpuapp`, not `cpuapp/ns`, so there is no
   secure/non-secure split and nothing encrypts or authenticates stored data.
-- **No changes to any SDK or driver source.** All configuration is done from the application:
-  full-scale ranges and ODR are set at runtime through the public `sensor_attr_set()` API, and
-  gyro bias correction lives in the app because the LSM6DSL driver has no offset support.
+
 
 ## Layout
 
