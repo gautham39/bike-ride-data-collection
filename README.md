@@ -71,6 +71,36 @@ Then open a serial terminal on the board's USB serial port at **115200** to capt
 Measured footprint of the current firmware: **59,044 B flash** of 1428 KB (4.0 %) and
 **10,624 B RAM** of 188 KB (5.5 %).
 
+## ML plan
+
+The CSV collected by `p1_imu_bringup` is the training set. Two models are planned, both intended
+to run on-device, and they map one-to-one onto the two objectives:
+
+1. **Ride-pattern classification** — a supervised classifier over windowed accel + gyro:
+   idle, cruising, rough surface, cornering, braking, impact.
+2. **Predictive maintenance** — anomaly detection trained on *healthy-bike* data only, scoring how
+   far the live vibration and rotation signature has drifted from that baseline. No fault dataset
+   is required, which is what makes it practical: recording normal rides is enough.
+
+Approach:
+
+- **Features** — windowed time and frequency statistics over the six raw axes: RMS, peak,
+  zero-crossing rate, and FFT spectral bins. **CMSIS-DSP** and **CMSIS-NN** are both already
+  present in this SDK install (`modules/lib/cmsis-dsp`, `modules/lib/cmsis-nn`) and are the
+  intended DSP path.
+- **Training** — offline, from the serial CSV. No labelling happens on the board.
+- **Runtime** — **Edge Impulse standalone C++ export**, compiled into the application.
+  Two constraints drove that choice, both verified against this install: TensorFlow Lite Micro is
+  absent (not even declared in `zephyr/west.yml`), and the SDK's own Edge Impulse integration
+  (`nrf/lib/edge_impulse`) is marked `[DEPRECATED]` and `select DEPRECATED` in its Kconfig.
+- **Budget** — 188 KB RAM total on this SoC. That, not accuracy, is the binding constraint on
+  window length and model size.
+
+Inference changes nothing about what the board records: the raw stream stays the ground truth, so
+a model can always be retrained against data already captured.
+
+No ML code is in this repository yet — `p1_imu_bringup` only collects the data it will need.
+
 ## Deliberately out of scope, for now
 
 These are excluded on purpose, not pending oversight:
