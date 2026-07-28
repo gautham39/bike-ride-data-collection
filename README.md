@@ -22,12 +22,6 @@ Everything in this repository exists to serve that: get clean, correctly scaled,
 |---|---|
 | Board | Seeed XIAO nRF54L15 (`xiao_nrf54l15/nrf54l15/cpuapp`) |
 | IMU | On-board LSM6DS3TR-C, 6-axis accel + gyro |
-| IMU bus | `i2c30` @ `0x6a`, devicetree alias `imu0`, compatible `st,lsm6dsl` |
-| IMU power | `pdm_imu_pwr` rail on P0.01 (gpio-hog, enabled automatically at boot) |
-| Console | `uart20` @ 115200 — P1.09 TX / P1.08 RX, routed to the on-board USB serial |
-| SDK | nRF Connect SDK v3.3.0 |
-
-No external sensors or shields are required.
 
 ## Current stage: `p1_imu_bringup`
 
@@ -77,27 +71,6 @@ Then open a serial terminal on the board's USB serial port at **115200** to capt
 Measured footprint of the current firmware: **59,044 B flash** of 1428 KB (4.0 %) and
 **10,624 B RAM** of 188 KB (5.5 %).
 
-### Notes on this toolchain
-
-- **`west build` fails if the app and the SDK are on different Windows drives** — west computes a
-  relative path from the workspace to the source directory and raises
-  `ValueError: path is on mount 'b:', start on mount 'C:'`. Invoke CMake directly in that case:
-  ```sh
-  cmake -GNinja -S <app> -B <app>/build -DBOARD=xiao_nrf54l15/nrf54l15/cpuapp
-  ninja -C <app>/build
-  ```
-- **`west flash` uses OpenOCD over the board's on-board SAMD11 CMSIS-DAP probe.** If OpenOCD
-  reports `could not claim interface: Operation not supported` followed by
-  `CMSIS-DAP command CMD_INFO failed`, it could not claim the CMSIS-DAP **v2 (bulk)** interface —
-  the usual Windows cause is no WinUSB driver bound to it. The probe also exposes a CMSIS-DAP
-  **v1 (HID)** interface, which avoids the problem entirely:
-  ```sh
-  west flash --cmd-pre-init "cmsis-dap backend hid"
-  ```
-  If that still fails, close anything holding the probe (serial monitor, nRF Connect Programmer,
-  a stale `openocd.exe`), then bind WinUSB to the CMSIS-DAP v2 interface with Zadig — that
-  interface only, not the CDC serial one.
-
 ## Deliberately out of scope, for now
 
 These are excluded on purpose, not pending oversight:
@@ -111,18 +84,6 @@ These are excluded on purpose, not pending oversight:
 - **No changes to any SDK or driver source.** All configuration is done from the application:
   full-scale ranges and ODR are set at runtime through the public `sensor_attr_set()` API, and
   gyro bias correction lives in the app because the LSM6DSL driver has no offset support.
-
-## Roadmap
-
-| Stage | Status |
-|---|---|
-| `p1_imu_bringup` — IMU up, calibrated, streaming CSV over serial | **present** |
-| `p2_data_collection` — sustained labelled ride capture | planned |
-| `p3_data_storing_sd_card` — log to SD instead of relying on a tethered console | planned |
-| `p4_ml_integration` — on-device ride-pattern classification and anomaly detection | planned |
-| `p5_dfu_fota` — push updated models to a deployed unit without a cable | planned |
-
-Only `p1_imu_bringup` exists in this repository today.
 
 ## Layout
 
