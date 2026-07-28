@@ -1,4 +1,4 @@
-# bike-sense
+# BIKE-SENSE
 
 Firmware for a bike-mounted sensor built on the **Seeed XIAO nRF54L15**.
 
