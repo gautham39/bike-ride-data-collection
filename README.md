@@ -20,7 +20,7 @@ Everything in this repository exists to serve that: get clean, correctly scaled,
 
 | Item | Detail |
 |---|---|
-| Board | Seeed XIAO nRF54L15 (`xiao_nrf54l15/nrf54l15/cpuapp`) |
+| Board | Seeed XIAO nRF54L15  |
 | IMU | On-board LSM6DS3TR-C, 6-axis accel + gyro |
 
 ## Current stage: `p1_imu_bringup`
